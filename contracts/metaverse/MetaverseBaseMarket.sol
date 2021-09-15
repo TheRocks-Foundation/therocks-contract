@@ -30,25 +30,20 @@ contract MetaverseBaseMarket {
 
     mapping(uint256 => Order) public orders;
     // From ERC721 registry assetId to Order (to avoid asset collision)
-    mapping (address => mapping(uint256 => Order)) public orderByAssetId;
+    mapping (address => mapping(uint256 => uint256)) public orderByAssetId;
+    mapping(address => bool) public approvedNfts;
 
-    uint256 orderCounter = 0;
+    uint256 orderCounter = 1;
     
-    /**
-     * @dev Returns the details for a order.
-     * @param _order The id for the order.
-     */
-    function getOrder(uint256 _order)
-        public
-        virtual
-        view
-        returns(address, uint256, address, uint256, uint256, bytes32)
-    {
-        Order memory order = orders[_order];
-        return (order.seller, order.item, order.nftAddress, order.price, order.expireAt, order.status);
+    function _beforeOpen(uint256 _item, address _nftAddress, uint256 _price, uint256 _expireAt) internal virtual {
+        IERC721 nft = IERC721(_nftAddress);
+        require(approvedNfts[_nftAddress], "NFT is not allowed trading on market!");
+        require(msg.sender == nft.ownerOf(_item), "Only owner can open order!");
+        require(nft.getApproved(_item) == address(this) || nft.isApprovedForAll(msg.sender, address(this)), "Marketplace need authorize from owner!");
+        require(_price > 0, "Price must be greater than 0!");
+        require(_expireAt > block.timestamp.add(1 minutes), "New Order lifecycle must longer than 1 minute!");
+        _cleanAsset(_nftAddress, _item);
     }
-
-    // function _beforeOpen(uint256 _item, address _nftAddress, uint256 _price, uint256 _expireAt) internal virtual {}
 
     /**
      * @dev Opens a new order. Puts _item in escrow.
@@ -58,13 +53,9 @@ contract MetaverseBaseMarket {
     function openOrder(uint256 _item, address _nftAddress, uint256 _price, uint256 _expireAt)
         public
         virtual
+        returns(uint256 orderId)
     {
-        require(approvedNfts[_nftAddress], "NFT is not allowed trading on market!");
-        require(msg.sender == _nftAddress.ownerOf(_item), "Only owner can open order!");
-        require(_nftAddress.getApproved(_item) == address(this) || _nftAddress.isApprovedForAll(msg.sender, address(this)), "Marketplace need authorize from owner!");
-        require(_price > 0, "Price must be greater than 0!");
-        require(expiresAt > block.timestamp.add(1 minutes), "New Order lifecycle must longer than 1 minute!");
-        // _beforeOpen(order);
+        _beforeOpen(_item, _nftAddress, _price, _expireAt);
         orders[orderCounter] = Order({
             id: orderCounter,
             seller: msg.sender,
@@ -74,11 +65,15 @@ contract MetaverseBaseMarket {
             expireAt: _expireAt,
             status: "Open"
         });
+        orderId = orderCounter;
         orderCounter += 1;
-        emit OrderStatusChange(orderCounter - 1, "Open");
+        emit OrderStatusChange(orderId, "Open");
     }
 
-    function _beforeExecute(Order memory order) internal virtual {}
+    function _beforeExecute(Order memory order) internal virtual {
+        require(order.status == "Open", "Order is not Open.");
+        require(block.timestamp <= order.expireAt, "Expired Order");
+    }
 
     /**
      * @dev Executes a order. Must have approved this contract to transfer the
@@ -92,29 +87,49 @@ contract MetaverseBaseMarket {
         virtual
     {
         Order memory order = orders[_order];
-        require(order.status == "Open", "Order is not Open.");
         _beforeExecute(order);
         payable(order.seller).transfer(order.price);
-        order.nftAddress.transferFrom(order.seller, msg.sender, order.item);
+        IERC721(order.nftAddress).transferFrom(order.seller, msg.sender, order.item);
         orders[_order].status = "Executed";
         emit OrderStatusChange(_order, "Executed");
     }
 
     /**
      * @dev Cancels a order by the seller.
-     * @param _order The order to be cancelled.
+     * @param _orderId The order to be cancelled.
      */
-    function cancelOrder(uint256 _order)
+    function cancelOrder(uint256 _orderId)
         public
         virtual
     {
-        Order memory order = orders[_order];
+        Order memory order = orders[_orderId];
         require(
             msg.sender == order.seller,
             "Order can be cancelled only by seller."
         );
         require(order.status == "Open", "Order is not Open.");
-        orders[_order].status = "Cancelled";
-        emit OrderStatusChange(_order, "Cancelled");
+        order.status = "Cancelled";
+        emit OrderStatusChange(_orderId, "Cancelled");
+    }
+
+    /**
+     * @dev clean asset before open order, get gas back support lower cost transaction
+     */
+    function _cleanAsset(address nft, uint256 assetId) internal {
+        uint256 orderId = orderByAssetId[nft][assetId];
+        if(orderId != 0) {
+            _deleteOrder(orderId);
+        }
+    }
+
+    /**
+     * @dev delete order in storage to get gas back, increase overall gas
+     * when the same asset is put back to the market
+     */
+    function _deleteOrder(uint256 _orderId) internal {
+        Order memory order = orders[_orderId];
+        delete orderByAssetId[order.nftAddress][order.item];
+        delete orders[_orderId];
+        emit OrderStatusChange(_orderId, "Delete");
     }
 }

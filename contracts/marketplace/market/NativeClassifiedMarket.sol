@@ -2,7 +2,7 @@
 pragma solidity ^0.8.6;
 
 import "./classified/NativeClassifieds.sol";
-import "./metadata/MarketEnumerable.sol";
+import "../../metadata/MarketEnumerable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
