@@ -8,16 +8,12 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgradeable {
     using SafeMath for uint256;
-    uint256 public tradingFee;
+    uint256 public tradingFee = 5;
 
     event OpenOrder(address indexed poster, address _nftAddress, uint256 itemId, uint256 orderId, uint256 price);
     event ExecuteOrder(address indexed seller, address indexed buyer, uint256 orderId, uint256 price);
     event CancelOrder(address indexed poster, uint256 orderId);
     event ApproveNFT(address nft, bool enable);
-
-    constructor() {
-        tradingFee = 5;
-    }
 
     function initialize(address _theRockToken) public initializer {
         OwnableUpgradeable.__Ownable_init();
