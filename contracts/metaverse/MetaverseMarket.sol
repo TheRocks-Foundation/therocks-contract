@@ -3,8 +3,8 @@ pragma solidity ^0.8.6;
 
 import "./MetaverseBaseMarket.sol";
 import "../metadata/MarketEnumerable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgradeable {
     using SafeMath for uint256;
@@ -19,8 +19,13 @@ contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgrad
         tradingFee = 5;
     }
 
-    function initialize() public initializer {
+    function initialize(address _theRockToken) public initializer {
         OwnableUpgradeable.__Ownable_init();
+        theRockToken = IERC20(_theRockToken);
+    }
+
+    function setTradingToken(address tradingToken) public onlyOwner virtual {
+        theRockToken = IERC20(tradingToken);
     }
 
     function setTradingFee(uint256 _tradingFee) public onlyOwner {
@@ -50,8 +55,6 @@ contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgrad
         orderId = orderByAssetId[nftAddress][assetId];
     }
 
-    // function _beforeOpen(uint256 _item, address _nftAddress, uint256 _price, uint256 _expireAt) internal virtual {}
-
     /**
      * @dev Opens a new order.
      * @param _item The id for the item to order.
@@ -71,9 +74,8 @@ contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgrad
 
     function _beforeExecute(Order memory order) internal override {
         super._beforeExecute(order);
-        require(msg.value >= order.price, "Invalid price!");
         uint256 tFee = order.price.mul(tradingFee).div(100);
-        payable(owner()).transfer(tFee);
+        theRockToken.transferFrom(msg.sender, owner(), tFee);
         order.price = order.price - tFee;
     }
 
@@ -85,7 +87,6 @@ contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgrad
      */
     function executeOrder(uint256 _order)
         public
-        payable
         override
     {
         MetaverseBaseMarket.executeOrder(_order);

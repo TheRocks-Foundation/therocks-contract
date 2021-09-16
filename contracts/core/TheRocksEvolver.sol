@@ -8,13 +8,23 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TheRocksEvolver is Ownable {
     event EvolveItem(address owner, uint256 _rockId);
-    
+    mapping(address => bool) admins;
     IERC20 public feeToken;
     TheRocksCore theRocksCore;
     uint8 normalRange = 16;
 
+    modifier onlyAdmin() {
+        require(admins[msg.sender], "only allowed admin!");
+        _;
+    }
+
     constructor(address core) {
         theRocksCore = TheRocksCore(core);
+        admins[msg.sender] = true;
+    }
+
+    function setAdmin(address _admin, bool _enable) public onlyOwner {
+        admins[_admin] = _enable;
     }
 
     function _sliceNumber(uint256 _n, uint256 _nbits, uint256 _offset) private pure returns (uint256) {
@@ -26,25 +36,6 @@ contract TheRocksEvolver is Ownable {
 
     function _get5Bits(uint256 _input, uint256 _slot) internal pure returns(uint8) {
         return uint8(_sliceNumber(_input, uint256(5), _slot * 5));
-    }
-
-    function decode(uint256 _characters) public pure returns(uint8[] memory) {
-        uint8[] memory traits = new uint8[](4);
-        uint256 i;
-        for(i = 0; i < 4; i++) {
-            traits[i] = _get5Bits(_characters, i);
-        }
-        return traits;
-    }
-
-    function encode(uint8[] memory _traits) public pure returns (uint256 _characters) {
-        _characters = 0;
-        for(uint256 i = 0; i < 4; i++) {
-            _characters = _characters << 5;
-            // bitwise OR trait with _characters
-            _characters = _characters | _traits[3 - i];
-        }
-        return _characters;
     }
 
     function _evolveItem(uint256 _rockId, uint256 _newExp)
@@ -59,11 +50,11 @@ contract TheRocksEvolver is Ownable {
         emit EvolveItem(msg.sender, _rockId);
     }
 
-    function evolveItem(uint256 _characters, uint256 _newExp)
+    function evolveItem(uint256 _rockId, uint256 _newExp)
         public
-        onlyOwner
+        onlyAdmin
     {
-        _evolveItem(_characters, _newExp);
+        _evolveItem(_rockId, _newExp);
     }
 
     function withdraw(uint256 amount) public onlyOwner {

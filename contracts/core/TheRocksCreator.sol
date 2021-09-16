@@ -35,6 +35,10 @@ contract TheRocksCreator is Ownable {
         return fee;
     }
 
+    function setFeeToken(address _feeToken) public onlyOwner {
+        feeToken = IERC20(_feeToken);
+    }
+
     function setFee(uint256 _fee, bool _isSoftFee) public onlyOwner {
         fee = _fee;
         isSoftFee = _isSoftFee;

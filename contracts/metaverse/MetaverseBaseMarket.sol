@@ -28,6 +28,8 @@ contract MetaverseBaseMarket {
         bytes32 status; // Open, Executed, Cancelled
     }
 
+    IERC20 public theRockToken;
+
     mapping(uint256 => Order) public orders;
     // From ERC721 registry assetId to Order (to avoid asset collision)
     mapping (address => mapping(uint256 => uint256)) public orderByAssetId;
@@ -83,12 +85,11 @@ contract MetaverseBaseMarket {
      */
     function executeOrder(uint256 _order)
         public
-        payable
         virtual
     {
         Order memory order = orders[_order];
         _beforeExecute(order);
-        payable(order.seller).transfer(order.price);
+        theRockToken.transferFrom(msg.sender, order.seller, order.price);
         IERC721(order.nftAddress).transferFrom(order.seller, msg.sender, order.item);
         orders[_order].status = "Executed";
         emit OrderStatusChange(_order, "Executed");
