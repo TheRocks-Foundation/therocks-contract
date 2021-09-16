@@ -4,14 +4,14 @@ pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "./dependency/DefishDependency.sol";
-import "./DefishAccessControl.sol";
+import "./dependency/TheRocksDependency.sol";
+import "./TheRocksAccessControl.sol";
 
-contract DefishBase is ERC721Enumerable, DefishDependency, DefishAccessControl {
-  string public tokenURIPrefix = "https://de.fish/nft/token/";
+contract TheRocksBase is ERC721Enumerable, TheRocksDependency, TheRocksAccessControl {
+  string public tokenURIPrefix = "https://therocks.io/nft/token/";
   string public tokenURISuffix = ".json";
 
-  constructor() ERC721("Defish", "DEFISH") {
+  constructor() ERC721("TheRocks NFT", "ROCK") {
       
   }
 

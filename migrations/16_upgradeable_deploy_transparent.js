@@ -2,7 +2,7 @@ const TransparentUpgradeableProxy = artifacts.require('TransparentUpgradeablePro
 const NativeMarketClassifieds = artifacts.require("NativeMarketClassifieds");
 const ProxyAdmin = artifacts.require('ProxyAdmin');
 const MyToken = artifacts.require('MyToken');
-const DefishCore = artifacts.require('DefishCore');
+const TheRocksCore = artifacts.require('TheRocksCore');
 
 module.exports = function (deployer, network, accounts) {
     const logic = NativeMarketClassifieds.address;
@@ -15,7 +15,7 @@ module.exports = function (deployer, network, accounts) {
             console.log(market.owner());
             await market.setTradingFee(5, { from: accounts[0] });
             // await market.setERC20(MyToken.address, { from: accounts[0] });
-            await market.setNFT(DefishCore.address, { from: accounts[0] });
+            await market.setNFT(TheRocksCore.address, { from: accounts[0] });
         });
 };
 

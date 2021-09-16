@@ -1,5 +1,5 @@
-const DefishManager = artifacts.require("DefishManager");
+const TheRocksManager = artifacts.require("TheRocksManager");
 
 module.exports = function (deployer, network, accounts) {
-    deployer.deploy(DefishManager, { from: accounts[0], overwrite: true });
+    deployer.deploy(TheRocksManager, { from: accounts[0], overwrite: true });
 };

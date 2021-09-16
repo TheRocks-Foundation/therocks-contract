@@ -1,9 +1,9 @@
 const NativeMarketClassifieds = artifacts.require("NativeMarketClassifieds");
-const DefishCore = artifacts.require("DefishCore");
+const TheRocksCore = artifacts.require("TheRocksCore");
 
 module.exports = async function (deployer, network, accounts) {
     let market = await NativeMarketClassifieds.at(NativeMarketClassifieds.address);
-    let core = await DefishCore.at(DefishCore.address);
+    let core = await TheRocksCore.at(TheRocksCore.address);
 
     let ownerNft = await core.balanceOf(accounts[0]);
     console.log("Current fishes of accounts[0]: " + ownerNft);

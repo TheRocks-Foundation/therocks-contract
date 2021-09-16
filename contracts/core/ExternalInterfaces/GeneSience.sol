@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.6;
 
-import "./ExternalInterfaces/GeneScienceInterface.sol";
+import "./GeneScienceInterface.sol";
 
 
-/// @title GeneScience implements the trait calculation for new fish, inherit from CryptoKitties
-/// @author CauTa  <cauta@crypitor.com> (https://github.com/cauta)
-contract GeneScienceV1 is GeneScienceInterface {
+/// @title GeneScience implements the trait calculation for new kitties
+/// @author Axiom Zen, Dieter Shirley <dete@axiomzen.co> (https://github.com/dete), Fabiano P. Soriani <fabianosoriani@gmail.com> (https://github.com/flockonus), Jordan Schalm <jordan.schalm@gmail.com> (https://github.com/jordanschalm)
+contract GeneScience is GeneScienceInterface {
 
     uint256 internal constant maskLast8Bits = uint256(0xff);
     uint256 internal constant maskFirst248Bits = ~uint256(0xff);
@@ -22,6 +22,40 @@ contract GeneScienceV1 is GeneScienceInterface {
         uint8[] memory var1 = decode(random);
         genes = encode(var1);
         return genes;
+    }
+
+    /// @dev given a characteristic and 2 genes (unsorted) - returns > 0 if the genes ascended, that's the value
+    /// @param trait1 any trait of that characteristic
+    /// @param trait2 any trait of that characteristic
+    /// @param rand is expected to be a 3 bits number (0~7)
+    /// @return ascension -1 if didnt match any ascention, OR a number from 0 to 30 for the ascended trait
+    function _ascend(uint8 trait1, uint8 trait2, uint256 rand) internal view returns(uint8 ascension) {
+        ascension = 0;
+
+        uint8 smallT = trait1;
+        uint8 bigT = trait2;
+
+        if (smallT > bigT) {
+            bigT = trait1;
+            smallT = trait2;
+        }
+
+        // https://github.com/axiomzen/cryptokitties/issues/244
+        if ((bigT - smallT == 1) && smallT % 2 == 0) {
+
+            // The rand argument is expected to be a random number 0-7.
+            // 1st and 2nd tier: 1/4 chance (rand is 0 or 1)
+            // 3rd and 4th tier: 1/8 chance (rand is 0)
+
+            // must be at least this much to ascend
+            uint256 maxRand;
+            if (smallT < (totalTrail-1)) maxRand = 1;
+            else maxRand = 0;
+
+            if (rand <= maxRand ) {
+                ascension = (smallT / 2) + 16;
+            }
+        }
     }
 
     /// @dev given a number get a slice of any bits, at certain offset
@@ -47,14 +81,9 @@ contract GeneScienceV1 is GeneScienceInterface {
     /// @return the totalTrail traits that composes the genetic code, logically divided in stacks of 4, where only the first trait of each stack may express
     function decode(uint256 _genes) public view returns(uint8[] memory) {
         uint8[] memory traits = new uint8[](totalTrail);
-        uint8 i;
-        /// we decode class of fish with first 4 trails fit into 5 class
-        for(i = 0; i < 4; i++) {
-            traits[i] = _get5Bits(_genes, i) % 5;
-            traits[i] = traits[i] % 5;
-        }
-        for(i = 4; i < totalTrail; i++) {
-            traits[i] = _get5Bits(_genes, i) % 16;
+        uint256 i;
+        for(i = 0; i < totalTrail; i++) {
+            traits[i] = _get5Bits(_genes, i);
         }
         return traits;
     }
@@ -71,7 +100,7 @@ contract GeneScienceV1 is GeneScienceInterface {
     }
 
     /// @dev return the expressing traits
-    /// @param _genes the long number expressing fish genes
+    /// @param _genes the long number expressing rock genes
     function expressingTraits(uint256 _genes) public pure returns(uint8[totalPart] memory) {
         uint8[totalPart] memory express;
         for(uint256 i = 0; i < totalPart; i++) {
@@ -164,14 +193,55 @@ contract GeneScienceV1 is GeneScienceInterface {
 
         }
 
-        for(traitPos = 0; traitPos < totalTrail; traitPos++) {
-            rand = _sliceNumber(randomN, 1, randomIndex);
-            randomIndex += 1;
+        // DEBUG ONLY - We should have used 72 2-bit slices above for the swapping
+        // which will have consumed 144 bits.
+        // assert(randomIndex == 144);
 
-            if (rand == 0) {
-                babyArray[traitPos] = uint8(genes1Array[traitPos]);
+        // We have 256 - 144 = 112 bits of randomness left at this point. We will use up to
+        // four bits for the first slot of each trait (three for the possible ascension, one
+        // to pick between mom and dad if the ascension fails, for a total of totalTrail bits. The other
+        // traits use one bit to pick between parents (36 gene pairs, 36 genes), leaving us
+        // well within our entropy budget.
+
+        // done shuffling parent genes, now let's decide on choosing trait and if ascending.
+        // NOTE: Ascensions ONLY happen in the "top slot" of each characteristic. This saves
+        //  gas and also ensures ascensions only happen when they're visible.
+        for(traitPos = 0; traitPos < totalTrail; traitPos++) {
+
+            // See if this trait pair should ascend
+            uint8 ascendedTrait = 0;
+
+            // There are two checks here. The first is straightforward, only the trait
+            // in the first slot can ascend. The first slot is zero mod 4.
+            //
+            // The second check is more subtle: Only values that are one apart can ascend,
+            // which is what we check inside the _ascend method. However, this simple mask
+            // and compare is very cheap (9 gas) and will filter out about half of the
+            // non-ascending pairs without a function call.
+            //
+            // The comparison itself just checks that one value is even, and the other
+            // is odd.
+            if ((traitPos % 4 == 0) && (genes1Array[traitPos] & 1) != (genes2Array[traitPos] & 1)) {
+                rand = _sliceNumber(randomN, 3, randomIndex); // 0~7
+                randomIndex += 3;
+
+                ascendedTrait = _ascend(genes1Array[traitPos], genes2Array[traitPos], rand);
+            }
+
+            if (ascendedTrait > 0) {
+                babyArray[traitPos] = uint8(ascendedTrait);
             } else {
-                babyArray[traitPos] = uint8(genes2Array[traitPos]);
+                // did not ascend, pick one of the parent's traits for the baby
+                // We use the top bit of rand for this (the bottom three bits were used
+                // to check for the ascension itself).
+                rand = _sliceNumber(randomN, 1, randomIndex);
+                randomIndex += 1;
+
+                if (rand == 0) {
+                    babyArray[traitPos] = uint8(genes1Array[traitPos]);
+                } else {
+                    babyArray[traitPos] = uint8(genes2Array[traitPos]);
+                }
             }
         }
 

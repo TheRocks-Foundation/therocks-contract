@@ -1,9 +1,9 @@
 const ERC20MarketClassifieds = artifacts.require("ERC20MarketClassifieds");
-const DefishCore = artifacts.require("DefishCore");
+const TheRocksCore = artifacts.require("TheRocksCore");
 
 module.exports = async function (deployer, network, accounts) {
     let market = await ERC20MarketClassifieds.at(ERC20MarketClassifieds.address);
-    let core = await DefishCore.at(DefishCore.address);
+    let core = await TheRocksCore.at(TheRocksCore.address);
 
     let ownerNft = await core.balanceOf(accounts[0]);
     console.log("Current fishes of accounts[0]: " + ownerNft);

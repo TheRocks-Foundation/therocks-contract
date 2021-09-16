@@ -1,11 +1,11 @@
 const NativeMarketClassifieds = artifacts.require("NativeMarketClassifieds");
-const DefishCore = artifacts.require("DefishCore");
+const TheRocksCore = artifacts.require("TheRocksCore");
 const Web3 = require('web3');
 
 module.exports = async function (deployer, network, accounts) {
     var web3 = new Web3(deployer.provider);
     let market = await NativeMarketClassifieds.at(NativeMarketClassifieds.address);
-    let core = await DefishCore.at(DefishCore.address);
+    let core = await TheRocksCore.at(TheRocksCore.address);
     let startingBalance;
     await web3.eth.getBalance(accounts[1]).then(function (balance) {startingBalance = balance});
     console.log("Account[1] Starting Balance: " + startingBalance.toString() );

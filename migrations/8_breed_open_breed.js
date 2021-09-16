@@ -1,11 +1,11 @@
-const DefishBreeding = artifacts.require('DefishBreeding');
-const DefishCore = artifacts.require("DefishCore");
+const TheRocksBreeding = artifacts.require('TheRocksBreeding');
+const TheRocksCore = artifacts.require("TheRocksCore");
 const GeneScience = artifacts.require('GeneScienceV1');
 
 
 module.exports = async function (deployer, network, accounts) {
-    let core = await DefishCore.at(DefishCore.address);
-    let breeder = await DefishBreeding.at(DefishBreeding.address);
+    let core = await TheRocksCore.at(TheRocksCore.address);
+    let breeder = await TheRocksBreeding.at(TheRocksBreeding.address);
     let genes = await GeneScience.at(GeneScience.address);
 
     let matronId = 6;
@@ -15,8 +15,8 @@ module.exports = async function (deployer, network, accounts) {
     console.log("Breed check for fish-6 and fish-7: \n");
     console.log(result);
 
-    let matron = await core.getFish(matronId);
-    let sire = await core.getFish(sireId);
+    let matron = await core.getRock(matronId);
+    let sire = await core.getRock(sireId);
     // console.log(matron);
     // console.log(sire);
 

@@ -1,5 +1,5 @@
 const ERC20MarketClassifieds = artifacts.require("ERC20MarketClassifieds");
-const DefishCore = artifacts.require("DefishCore");
+const TheRocksCore = artifacts.require("TheRocksCore");
 const MyToken = artifacts.require("MyToken");
 
 module.exports = function (deployer, network, accounts) {
@@ -13,11 +13,11 @@ module.exports = function (deployer, network, accounts) {
       let seterc20 = await instance.setERC20(tokenAddress, { from: accounts[0] });
       console.log("Market trade token has been set at txn: " + seterc20.tx);
 
-      let setnft = await instance.setNFT(DefishCore.address, { from: accounts[0] });
+      let setnft = await instance.setNFT(TheRocksCore.address, { from: accounts[0] });
       console.log("Market NFT Core has been set at txn: " + setnft.tx);
 
       // approve trade NFT on market
-      let core = await DefishCore.at(DefishCore.address);
+      let core = await TheRocksCore.at(TheRocksCore.address);
       let approveTxn = await core.setApprovalForAll(instance.address, true, { from: accounts[0] });
       console.log("Approve market trading for accounts[0] at txn: " + approveTxn.tx);
 

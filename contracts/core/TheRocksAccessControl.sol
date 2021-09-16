@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 
-contract DefishAccessControl is Pausable {
+contract TheRocksAccessControl is Pausable {
 
   address public ceoAddress;
   address public cfoAddress;

@@ -1,10 +1,10 @@
 const MyToken = artifacts.require("MyToken");
 const ERC20MarketClassifieds = artifacts.require("ERC20MarketClassifieds");
-const DefishCore = artifacts.require("DefishCore");
+const TheRocksCore = artifacts.require("TheRocksCore");
 
 module.exports = async function (deployer, network, accounts) {
     let market = await ERC20MarketClassifieds.at(ERC20MarketClassifieds.address);
-    let core = await DefishCore.at(DefishCore.address);
+    let core = await TheRocksCore.at(TheRocksCore.address);
     let token = await MyToken.at(MyToken.address);
 
     let startingBalance = await token.balanceOf(accounts[1]);

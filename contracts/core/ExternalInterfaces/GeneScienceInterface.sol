@@ -2,7 +2,7 @@
 pragma solidity ^0.8.6;
 
 
-/// @title defined the interface that will be referenced in main Defish contract
+/// @title defined the interface that will be referenced in main TheRocks contract
 interface GeneScienceInterface {
     /// @dev simply a boolean to indicate this is the contract we expect to be
     function isGeneScience() external pure returns (bool);
