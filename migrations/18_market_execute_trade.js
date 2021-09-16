@@ -24,7 +24,7 @@ module.exports = async function (deployer, network, accounts) {
 
     // retrieve orderId[0]
     let item = await market.getOrder(orderIds[0]);
-    let price = item[4];
+    let price = item[3];
     console.log("OrderId: " + orderIds[0] + "\nItemId: " + item[1].toString() + "\nItem Price: " + price.toString());
 
     console.log("Expecting Balance After Buy: " + (startingBalance - price));
