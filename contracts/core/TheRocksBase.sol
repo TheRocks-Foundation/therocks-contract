@@ -8,7 +8,7 @@ import "./dependency/TheRocksDependency.sol";
 import "./TheRocksAccessControl.sol";
 
 contract TheRocksBase is ERC721Enumerable, TheRocksDependency, TheRocksAccessControl {
-  string public tokenURIPrefix = "https://therocks.io/nft/token/";
+  string public tokenURIPrefix = "https://assets.therocks.io/rock/";
   string public tokenURISuffix = ".json";
 
   constructor() ERC721("TheRocks NFT", "ROCK") {

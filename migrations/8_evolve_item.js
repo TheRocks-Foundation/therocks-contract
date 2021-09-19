@@ -33,21 +33,23 @@ function _get5Bits(_input, _slot) {
     return _sliceNumber(_input, 5, _slot * 5);
 }
 
-function decode(_characters) {
-    let traits = Array(4);
+function decode(_characters, level) {
+    let totalparts = level + 4;
+    let traits = Array(totalparts);
     let i;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < totalparts; i++) {
         traits[i] = _get5Bits(_characters, i);
     }
     return traits;
 }
 
-function encode(_traits) {
+function encode(_traits, level) {
+    let totalparts = level + 4;
     let _characters = 0;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < totalparts; i++) {
         _characters = _characters << 5;
         // bitwise OR trait with _characters
-        _characters = _characters | _traits[3 - i];
+        _characters = _characters | _traits[(totalparts-1) - i];
     }
     return _characters;
 }
