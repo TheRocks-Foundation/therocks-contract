@@ -51,7 +51,7 @@ module.exports = {
     },
     goerli: {
       provider: function () {
-        return new HDWalletProvider(mumbai.mnemonic, "https://goerli.infura.io/v3/d7aa2a84a44548819617058aa0a3e347");
+        return new HDWalletProvider(mumbai.mnemonic, "http://16.162.164.27:8545");
       },
       network_id: '5',
       gasPrice: 2000000000,

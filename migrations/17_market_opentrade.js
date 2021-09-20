@@ -1,6 +1,8 @@
 const MetaverseMarket = artifacts.require("MetaverseMarket");
 const TransparentUpgradeableProxy = artifacts.require('TransparentUpgradeableProxy');
 const TheRocksCore = artifacts.require("TheRocksCore");
+const lodash = require("lodash");
+const bn = require("bn.js");
 
 module.exports = async function (deployer, network, accounts) {
     let marketAddress = TransparentUpgradeableProxy.address;
@@ -23,13 +25,15 @@ module.exports = async function (deployer, network, accounts) {
     let ownerNft = await core.balanceOf(accounts[0]);
     console.log("Current rocks of accounts[0]: " + ownerNft);
     let tokenIds = [];
-    for (let index = 0; index < ownerNft/2; index++) {
+    for (let index = 0; index < ownerNft; index++) {
         let tokenId = await core.tokenOfOwnerByIndex(accounts[0], index);
         tokenIds[index] = tokenId;
     }
 
-    for (let index = 0; index < ownerNft/2; index++) {
-        let txn = await market.openOrder(tokenIds[index], nft, '100000000000', 1641775738, { from: accounts[0] })
-        console.log("Open trade rockId " + tokenIds[index] + " at txn:" + txn.tx);
+    for (let index = 40; index < ownerNft; index++) {
+        let random = lodash.random(0, 100);
+        let price = new bn('1000000000').muln(random);
+        let txn = await market.openOrder(tokenIds[index], nft, price, 1641775738, { from: accounts[0] })
+        console.log("Open trade rockId " + tokenIds[index] + " at txn: " + txn.tx);
     }
 };

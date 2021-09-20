@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.6;
 
-import './ExternalInterfaces/GeneScienceInterface.sol';
-import './TheRocksCore.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+interface ITheRocksCore {
+    function getRock(uint256 _rockId) external view returns (uint256 character, uint256 exp, uint256 bornAt,uint8 level);
+    function spawnRock(uint256 _character,address _owner, uint256 _delay) external returns(uint256);
+}
 
 contract TheRocksCreator is Ownable {
     event CreateItem(address owner, uint256 _rockId);
@@ -12,7 +15,7 @@ contract TheRocksCreator is Ownable {
     event RollingUpdated(uint256 _changeLine, uint256 _changeRate);
     address public creatorFeeReiver;
     IERC20 public feeToken;
-    TheRocksCore theRocksCore;
+    ITheRocksCore theRocksCore;
     uint8 normalRange = 16;
 
     uint256 changeLine = 1000;
@@ -22,7 +25,7 @@ contract TheRocksCreator is Ownable {
     bool isSoftFee;
 
     constructor(address core, address token) {
-        theRocksCore = TheRocksCore(core);
+        theRocksCore = ITheRocksCore(core);
         feeToken = IERC20(token);
         creatorFeeReiver = msg.sender;
     }
@@ -81,15 +84,15 @@ contract TheRocksCreator is Ownable {
         return _characters;
     }
 
-    function mint(uint256 _characters) public {
+    function mint(uint256 _characters) public returns(uint256){
         uint8[] memory decoded = decode(_characters);
         for(uint8 i = 0; i < 4; i++) {
             require(decoded[i] < normalRange, "Invalid Character!");
         }
         feeToken.transferFrom(msg.sender, creatorFeeReiver, getCurrentFee());
         _characters = encode(decoded);
-        _createItem(_characters);
         totalCreated += 1;
+        return _createItem(_characters);
     }
 
     function _createItem(uint256 characters)

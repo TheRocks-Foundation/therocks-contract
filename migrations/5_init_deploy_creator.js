@@ -2,7 +2,7 @@ const TheRocksCreator = artifacts.require('TheRocksCreator');
 const TheRocksCore = artifacts.require("TheRocksCore");
 const MyToken = artifacts.require("MyToken");
 
-module.exports = function (deployer, network, accounts) {
+module.exports = async function (deployer, network, accounts) {
     token = MyToken.address;
     nft = TheRocksCore.address;
     
@@ -12,5 +12,9 @@ module.exports = function (deployer, network, accounts) {
         console.log("Spawner has been whitelisted at tx: " + tx.tx);
     });
     
-    
+    // let core = await TheRocksCore.at(TheRocksCore.address);
+    // let tx = await core.setTokenURI("https://assets.therocks.io/rock/", ".png", {from: accounts[0]});
+    // console.log("set token uri at tx: " + tx.tx);
+    // let token = await core.tokenURI(1);
+    // console.log(token);
 };
