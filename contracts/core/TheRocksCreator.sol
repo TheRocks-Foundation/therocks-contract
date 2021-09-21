@@ -7,10 +7,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 interface ITheRocksCore {
     function getRock(uint256 _rockId) external view returns (uint256 character, uint256 exp, uint256 bornAt,uint8 level);
     function spawnRock(uint256 _character,address _owner, uint256 _delay) external returns(uint256);
+    function rebirthRock(uint256 _rockId,uint256 _character,uint256 delay) external ;
 }
 
 contract TheRocksCreator is Ownable {
     event CreateItem(address owner, uint256 _rockId);
+    event RebirthItem(uint256 _rockId, uint256 _characters);
     event FeeUpdated(uint256 _newFee);
     event RollingUpdated(uint256 _changeLine, uint256 _changeRate);
     address public creatorFeeReiver;
@@ -119,6 +121,11 @@ contract TheRocksCreator is Ownable {
         for (uint8 i; i < amount; i++) {
             _createItem(characters);
         }
+    }
+
+    function rebirthRock(uint256 _rockId, uint256 _characters) public onlyOwner {
+        theRocksCore.rebirthRock(_rockId, _characters, 0);
+        emit RebirthItem(_rockId, _characters);
     }
 
     function withdraw(uint256 amount) public onlyOwner {

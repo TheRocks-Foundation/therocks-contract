@@ -11,9 +11,6 @@ module.exports = async function (deployer, network, accounts) {
     let core = await TheRocksCore.at(TheRocksCore.address);
     let token = await MyToken.at(MyToken.address);
 
-    let startingBalance = await token.balanceOf(accounts[1]);
-    console.log("Starting Balance: " + startingBalance);
-
     // retrieve open order
     let totalOpenOrder = await market.totalOpenOrder();
     let orderIds = await market.openOrderIdsByRange(0, totalOpenOrder);
@@ -22,6 +19,7 @@ module.exports = async function (deployer, network, accounts) {
     // // execute orderId[0]
     for (let i = 0; i < orderIds.length; i++) {
         const element = orderIds[i];
+        console.log("Cancel orderId: " + element);
         let tx = await market.cancelOrder(element, { from: accounts[0]});
         console.log("Cancel Order at transaction: " + tx.tx);
     }

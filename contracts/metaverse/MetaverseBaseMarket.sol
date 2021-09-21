@@ -44,7 +44,6 @@ contract MetaverseBaseMarket {
         require(nft.getApproved(_item) == address(this) || nft.isApprovedForAll(msg.sender, address(this)), "Marketplace need authorize from owner!");
         require(_price > 0, "Price must be greater than 0!");
         require(_expireAt > block.timestamp.add(1 minutes), "New Order lifecycle must longer than 1 minute!");
-        _cleanAsset(_nftAddress, _item);
     }
 
     /**
@@ -68,6 +67,7 @@ contract MetaverseBaseMarket {
             status: "Open"
         });
         orderId = orderCounter;
+        orderByAssetId[_nftAddress][_item] = orderId;
         orderCounter += 1;
         emit OrderStatusChange(orderId, "Open");
     }
@@ -87,7 +87,7 @@ contract MetaverseBaseMarket {
         public
         virtual
     {
-        Order memory order = orders[_order];
+        Order storage order = orders[_order];
         _beforeExecute(order);
         theRockToken.transferFrom(msg.sender, order.seller, order.price);
         IERC721(order.nftAddress).transferFrom(order.seller, msg.sender, order.item);
@@ -103,7 +103,7 @@ contract MetaverseBaseMarket {
         public
         virtual
     {
-        Order memory order = orders[_orderId];
+        Order storage order = orders[_orderId];
         require(
             msg.sender == order.seller,
             "Order can be cancelled only by seller."
@@ -114,21 +114,11 @@ contract MetaverseBaseMarket {
     }
 
     /**
-     * @dev clean asset before open order, get gas back support lower cost transaction
-     */
-    function _cleanAsset(address nft, uint256 assetId) internal {
-        uint256 orderId = orderByAssetId[nft][assetId];
-        if(orderId != 0) {
-            _deleteOrder(orderId);
-        }
-    }
-
-    /**
      * @dev delete order in storage to get gas back, increase overall gas
      * when the same asset is put back to the market
      */
     function _deleteOrder(uint256 _orderId) internal {
-        Order memory order = orders[_orderId];
+        Order storage order = orders[_orderId];
         delete orderByAssetId[order.nftAddress][order.item];
         delete orders[_orderId];
         emit OrderStatusChange(_orderId, "Delete");

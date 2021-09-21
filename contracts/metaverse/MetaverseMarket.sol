@@ -51,6 +51,11 @@ contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgrad
         orderId = orderByAssetId[nftAddress][assetId];
     }
 
+    function _beforeOpen(uint256 _item, address _nftAddress, uint256 _price, uint256 _expireAt) internal override {
+        super._beforeOpen(_item, _nftAddress, _price, _expireAt);
+        _cleanAsset(_nftAddress, _item);
+    }
+
     /**
      * @dev Opens a new order.
      * @param _item The id for the item to order.
@@ -101,6 +106,21 @@ contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgrad
         MetaverseBaseMarket.cancelOrder(_order);
         MarketEnumerable._burn(_order);
         emit CancelOrder(msg.sender, _order);
+    }
+
+    /**
+     * @dev clean asset before open order, get gas back support lower cost transaction
+     */
+    function _cleanAsset(address nft, uint256 assetId) internal {
+        uint256 orderId = orderByAssetId[nft][assetId];
+        // delete old order get gas back
+        if(orderId != 0) {
+            MetaverseBaseMarket._deleteOrder(orderId);
+            // if order did not cancel yet, we burn the old orderId
+            if(MarketEnumerable._exists(orderId)) { 
+                MarketEnumerable._burn(orderId);
+            }
+        }
     }
 }
 

@@ -267,7 +267,7 @@ contract MarketEnumerable {
         address owner = _owners[orderId];
         require(
             owner != address(0),
-            "MarketEnumerable: owner query for nonexistent token"
+            "MarketEnumerable: owner query for nonexistent order"
         );
         return owner;
     }

@@ -6,32 +6,19 @@ const lodash = require("lodash");
 module.exports = async function (deployer, network, accounts) {
     let creator = await TheRocksCreator.at(TheRocksCreator.address);
     let core = await TheRocksCore.at(TheRocksCore.address);
-    let token = await MyToken.at(MyToken.address);
 
-    // owner create new rock
-    //00001001000011101001
+    let ownerNft = await core.balanceOf(accounts[0]);
     {
 
-        for (let i = 0; i < 20; i++) {
-            // let random = lodash.random(0, 1000000000);
-            // let char = encode(decode(random, 0), 0);
-            // console.log("Random char: " + char);
-            // let createRockOwner = await creator.createItem(char, { from: accounts[0], gas: 10000000 });
-            // console.log("Created rocks at txn: " + createRockOwner.tx);   
+        for (let i = 20; i < ownerNft; i++) {
+            let tokenId = await core.tokenOfOwnerByIndex(accounts[0], i);
+            let random = lodash.random(0, 1000000000);
+            let char = encode(decode(random, 0), 0);
+            console.log("Random char: " + char);
+            console.log("Rebirth rockId: " + tokenId.toString());
+            let createRockOwner = await creator.rebirthRock(tokenId, char, { from: accounts[0], gas: 10000000 });
+            console.log("Rebirth rocks at txn: " + createRockOwner.tx);   
         }
-    }
-
-
-    {
-        // let random = lodash.random(0, 1000000000);
-        // // mint token from outside 
-        // // 00001001000011101001
-        // let char = encode(decode(random, 0), 0);
-        // console.log("New character: " + char);
-        // let approve = await token.approve(TheRocksCreator.address, '1000000000000000000000000', { from: accounts[1] });
-        // console.log("approve token at txn: " + approve.tx);
-        // let mintRock = await creator.mint(char, { from: accounts[1], gas: 10000000 });
-        // console.log("mint rock at txn: " + mintRock.tx);
     }
 
 };
