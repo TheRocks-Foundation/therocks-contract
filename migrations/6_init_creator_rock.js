@@ -12,26 +12,26 @@ module.exports = async function (deployer, network, accounts) {
     //00001001000011101001
     {
 
-        for (let i = 0; i < 20; i++) {
-            // let random = lodash.random(0, 1000000000);
-            // let char = encode(decode(random, 0), 0);
-            // console.log("Random char: " + char);
-            // let createRockOwner = await creator.createItem(char, { from: accounts[0], gas: 10000000 });
-            // console.log("Created rocks at txn: " + createRockOwner.tx);   
+        for (let i = 0; i < 50; i++) {
+            let random = lodash.random(0, 1000000000);
+            let char = encode(decode(random, 0), 0);
+            console.log("Random char: " + char);
+            let createRockOwner = await creator.createItem(char, { from: accounts[0], gas: 10000000 });
+            console.log("Created rocks at txn: " + createRockOwner.tx);   
         }
     }
 
 
     {
-        // let random = lodash.random(0, 1000000000);
-        // // mint token from outside 
-        // // 00001001000011101001
-        // let char = encode(decode(random, 0), 0);
-        // console.log("New character: " + char);
-        // let approve = await token.approve(TheRocksCreator.address, '1000000000000000000000000', { from: accounts[1] });
-        // console.log("approve token at txn: " + approve.tx);
-        // let mintRock = await creator.mint(char, { from: accounts[1], gas: 10000000 });
-        // console.log("mint rock at txn: " + mintRock.tx);
+        let random = lodash.random(0, 1000000000);
+        // mint token from outside 
+        // 00001001000011101001
+        let char = encode(decode(random, 0), 0);
+        console.log("New character: " + char);
+        let approve = await token.approve(TheRocksCreator.address, '1000000000000000000000000', { from: accounts[1] });
+        console.log("approve token at txn: " + approve.tx);
+        let mintRock = await creator.mint(char, { from: accounts[1], gas: 10000000 });
+        console.log("mint rock at txn: " + mintRock.tx);
     }
 
 };

@@ -7,19 +7,19 @@ module.exports = async function (deployer, network, accounts) {
     let creator = await TheRocksCreator.at(TheRocksCreator.address);
     let core = await TheRocksCore.at(TheRocksCore.address);
 
-    let ownerNft = await core.balanceOf(accounts[0]);
-    {
+    // let ownerNft = await core.balanceOf(accounts[0]);
+    // {
 
-        for (let i = 20; i < ownerNft; i++) {
-            let tokenId = await core.tokenOfOwnerByIndex(accounts[0], i);
-            let random = lodash.random(0, 1000000000);
-            let char = encode(decode(random, 0), 0);
-            console.log("Random char: " + char);
-            console.log("Rebirth rockId: " + tokenId.toString());
-            let createRockOwner = await creator.rebirthRock(tokenId, char, { from: accounts[0], gas: 10000000 });
-            console.log("Rebirth rocks at txn: " + createRockOwner.tx);   
-        }
-    }
+    //     for (let i = 20; i < ownerNft; i++) {
+    //         let tokenId = await core.tokenOfOwnerByIndex(accounts[0], i);
+    //         let random = lodash.random(0, 1000000000);
+    //         let char = encode(decode(random, 0), 0);
+    //         console.log("Random char: " + char);
+    //         console.log("Rebirth rockId: " + tokenId.toString());
+    //         let createRockOwner = await creator.rebirthRock(tokenId, char, { from: accounts[0], gas: 10000000 });
+    //         console.log("Rebirth rocks at txn: " + createRockOwner.tx);   
+    //     }
+    // }
 
 };
 

@@ -24,7 +24,7 @@ module.exports = async function (deployer, network, accounts) {
 
     let ownerNft = await core.balanceOf(accounts[0]);
     console.log("Current rocks of accounts[0]: " + ownerNft);
-    for (let index = 50; index < 65; index++) {
+    for (let index = 0; index < ownerNft; index++) {
         let tokenId = await core.tokenOfOwnerByIndex(accounts[0], index);
         let random = lodash.random(1, 100);
         let price = new bn('1000000000').muln(random);
