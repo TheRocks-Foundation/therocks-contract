@@ -89,8 +89,8 @@ contract MetaverseBaseMarket {
         virtual
     {
         Order storage order = orders[_order];
-        orders[_order].status = "Executed";
         uint256 priceAfterFee = _beforeExecute(order);
+        orders[_order].status = "Executed";
         theRockToken.transferFrom(msg.sender, order.seller, priceAfterFee);
         IERC721(order.nftAddress).transferFrom(order.seller, msg.sender, order.item);
         emit OrderStatusChange(_order, "Executed");
