@@ -28,7 +28,7 @@ module.exports = {
     },
     bsc: {
       provider: function () {
-        return new HDWalletProvider(mainenv.mnemonic, "https://bsc-dataseed1.binance.org/");
+        return new HDWalletProvider(mainenv.mnemonic, "https://nd-284-370-235.p2pify.com/94d3b76de0b1156e81eea02fa634b216");
       },
       network_id: '56',
       gasPrice: 5000000000,
@@ -76,6 +76,6 @@ module.exports = {
     'truffle-plugin-verify'
   ],
   api_keys: {
-    etherscan: 'MQ6Z41BD628EJBVU28ZP3S2ACYXBEDA9IC'
+    etherscan: mainenv.BSCSCAN_APIKEY
   }
 };

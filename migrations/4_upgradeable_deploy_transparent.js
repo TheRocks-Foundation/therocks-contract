@@ -8,7 +8,7 @@ module.exports = function (deployer, network, accounts) {
     const logic = MetaverseMarket.address;
     const proxyAdmin = ProxyAdmin.address;
     const data = '0x';
-    deployer.deploy(TransparentUpgradeableProxy, logic, proxyAdmin, data, { from: accounts[0], overwrite: true })
+    deployer.deploy(TransparentUpgradeableProxy, logic, proxyAdmin, data, { from: accounts[0], overwrite: false })
         .then(async (instance) => {
             let market = await MetaverseMarket.at(instance.address);
             await market.initialize(MyToken.address);

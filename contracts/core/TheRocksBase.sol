@@ -28,12 +28,17 @@ contract TheRocksBase is ERC721Enumerable, TheRocksDependency, TheRocksAccessCon
       return bytes(uri).length > 0 ? string(abi.encodePacked(uri, tokenURISuffix)) : "";
   }
 
-  function setTokenURI(string memory _prefix, string memory _suffix) external onlyCEO {
+  function setTokenURI(string memory _prefix, string memory _suffix) external onlyCLevel {
     tokenURIPrefix = _prefix;
     tokenURISuffix = _suffix;
   }
 
-  function _beforeTokenTransfer(address from, address to, uint256 tokenId) whenTransferAllowed(from, to, tokenId) internal virtual override {
+  function _beforeTokenTransfer(address from, address to, uint256 tokenId) 
+    whenNotPaused
+    whenTransferAllowed(from, to, tokenId) 
+    internal 
+    virtual 
+    override {
         super._beforeTokenTransfer(from, to, tokenId);
     }
 }

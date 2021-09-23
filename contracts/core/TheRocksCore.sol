@@ -53,6 +53,7 @@ contract TheRocksCore is TheRocksBase {
   )
     external
     onlySpawner
+    whenNotPaused
     whenSpawningAllowed(_character, _owner)
     returns (uint256 _rockId)
   {
@@ -85,6 +86,7 @@ contract TheRocksCore is TheRocksBase {
     uint8 _newLevel
   )
     external
+    whenNotPaused
     onlyExpScientist
     validateRock(_rockId)
     whenEvolvementAllowed(_rockId, _newExp)
@@ -102,6 +104,7 @@ contract TheRocksCore is TheRocksBase {
     uint256 delay
   )
     external
+    whenNotPaused
     onlySpawner
     validateRock(_rockId)
     whenRebirthAllowed(_rockId, _character)
@@ -117,6 +120,7 @@ contract TheRocksCore is TheRocksBase {
     bool _rip
   )
     external
+    whenNotPaused
     onlyByeSayer
     whenRetirementAllowed(_rockId, _rip)
   {

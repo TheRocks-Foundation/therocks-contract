@@ -12,7 +12,7 @@ module.exports = async function (deployer, network, accounts) {
     //00001001000011101001
     {
 
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 20; i++) {
             let random = lodash.random(0, 1000000000);
             let char = encode(decode(random, 0), 0);
             console.log("Random char: " + char);

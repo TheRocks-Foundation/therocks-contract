@@ -11,8 +11,8 @@ module.exports = async function (deployer, network, accounts) {
     // console.log("level: " + characters[3]);
     // console.log("TRAILS: " + trails);
 
-    let tx = await evolver.evolveItem(1, '1000');
-    console.log("Evolve rock at tx: " + tx.tx);
+    // let tx = await evolver.evolveItem(1, '1000');
+    // console.log("Evolve rock at tx: " + tx.tx);
 
     // characters = await core.getRock('1');
     // trails = await evolver.decode(characters[0]);
