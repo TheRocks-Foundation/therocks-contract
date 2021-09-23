@@ -73,11 +73,11 @@ contract MetaverseMarket is MetaverseBaseMarket, MarketEnumerable, OwnableUpgrad
         emit OpenOrder(msg.sender, _nftAddress, _item, orderId, _price);
     }
 
-    function _beforeExecute(Order memory order) internal override {
-        super._beforeExecute(order);
+    function _beforeExecute(Order memory order) internal override returns(uint256 priceAfterFee) {
+        priceAfterFee = super._beforeExecute(order);
         uint256 tFee = order.price.mul(tradingFee).div(100);
         theRockToken.transferFrom(msg.sender, owner(), tFee);
-        order.price = order.price - tFee;
+        priceAfterFee = priceAfterFee - tFee;
     }
 
     /**

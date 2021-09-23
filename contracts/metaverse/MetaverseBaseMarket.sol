@@ -72,9 +72,10 @@ contract MetaverseBaseMarket {
         emit OrderStatusChange(orderId, "Open");
     }
 
-    function _beforeExecute(Order memory order) internal virtual {
+    function _beforeExecute(Order memory order) internal virtual returns(uint256) {
         require(order.status == "Open", "Order is not Open.");
         require(block.timestamp <= order.expireAt, "Expired Order");
+        return order.price;
     }
 
     /**
@@ -88,10 +89,10 @@ contract MetaverseBaseMarket {
         virtual
     {
         Order storage order = orders[_order];
-        _beforeExecute(order);
-        theRockToken.transferFrom(msg.sender, order.seller, order.price);
-        IERC721(order.nftAddress).transferFrom(order.seller, msg.sender, order.item);
         orders[_order].status = "Executed";
+        uint256 priceAfterFee = _beforeExecute(order);
+        theRockToken.transferFrom(msg.sender, order.seller, priceAfterFee);
+        IERC721(order.nftAddress).transferFrom(order.seller, msg.sender, order.item);
         emit OrderStatusChange(_order, "Executed");
     }
 

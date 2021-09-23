@@ -4,13 +4,17 @@ pragma solidity ^0.8.6;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+interface ITheRockCreator {
+    function mint(uint256 _characters) external returns(uint256);
+}
+
 interface ITheRocksCore {
     function getRock(uint256 _rockId) external view returns (uint256 character, uint256 exp, uint256 bornAt,uint8 level);
     function spawnRock(uint256 _character,address _owner, uint256 _delay) external returns(uint256);
     function rebirthRock(uint256 _rockId,uint256 _character,uint256 delay) external ;
 }
 
-contract TheRocksCreator is Ownable {
+contract TheRocksCreator is Ownable, ITheRockCreator {
     event CreateItem(address owner, uint256 _rockId);
     event RebirthItem(uint256 _rockId, uint256 _characters);
     event FeeUpdated(uint256 _newFee);
@@ -86,7 +90,7 @@ contract TheRocksCreator is Ownable {
         return _characters;
     }
 
-    function mint(uint256 _characters) public returns(uint256){
+    function mint(uint256 _characters) public override returns(uint256){
         uint8[] memory decoded = decode(_characters);
         for(uint8 i = 0; i < 4; i++) {
             require(decoded[i] < normalRange, "Invalid Character!");
