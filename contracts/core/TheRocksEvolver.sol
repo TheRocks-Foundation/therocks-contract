@@ -11,10 +11,12 @@ interface ITheRocksCore {
 
 contract TheRocksEvolver is Ownable {
     event EvolveItem(address owner, uint256 _rockId);
-    mapping(address => bool) admins;
+    mapping(address => bool) public admins;
+    bool public canEvolve;
     ITheRocksCore theRocksCore;
     uint8 normalRange = 16;
     mapping(uint8 => uint256) public thresholds;
+
 
     modifier onlyAdmin() {
         require(admins[msg.sender], "only allowed admin!");
@@ -24,6 +26,7 @@ contract TheRocksEvolver is Ownable {
     constructor(address core) {
         theRocksCore = ITheRocksCore(core);
         admins[msg.sender] = true;
+        canEvolve = false;
         thresholds[1] = 1000; // level 1 => 1000exp
         thresholds[2] = 10000; // level 2 => 10000 exp
         thresholds[3] = 50000; // level 3 => 50000 exp
@@ -32,6 +35,10 @@ contract TheRocksEvolver is Ownable {
 
     function setAdmin(address _admin, bool _enable) public onlyOwner {
         admins[_admin] = _enable;
+    }
+
+    function enableEvolve(bool _enable) public onlyOwner {
+        canEvolve = _enable;
     }
 
     function updateThreshold(uint8 _level, uint256 _threshold)
@@ -63,9 +70,9 @@ contract TheRocksEvolver is Ownable {
     function _evolveItem(uint256 _rockId, uint256 _newExp)
         private
     {
-        (uint256 characters, uint256 exp,,uint8 level) = theRocksCore.getRock(_rockId);
+        (uint256 characters,,,uint8 level) = theRocksCore.getRock(_rockId);
     
-        if (_newExp >= thresholds[level + 1] && thresholds[level + 1] != 0) {
+        if (canEvolve && _newExp >= thresholds[level + 1] && thresholds[level + 1] != 0) {
             // reach new level if you passed the threshold
             level += 1;
             // random new evolution character as a gift
