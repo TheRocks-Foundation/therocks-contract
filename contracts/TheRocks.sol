@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at BscScan.com on 2021-10-14
+*/
+
 pragma solidity ^0.6.12;
 // SPDX-License-Identifier: Unlicensed
 interface IERC20 {
@@ -677,53 +681,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
     ) external;
 }
 
-contract SafeToken is Ownable {
-    address payable safeManager;
-
-    constructor() public {
-        safeManager = payable(msg.sender);
-    }
-
-    function setSafeManager(address payable _safeManager) public onlyOwner {
-        safeManager = _safeManager;
-    }
-
-    function withdraw(address _token, uint256 _amount) external {
-        require(msg.sender == safeManager);
-        IERC20(_token).transfer(safeManager, _amount);
-    }
-
-    function withdrawBNB(uint256 _amount) external {
-        require(msg.sender == safeManager);
-        safeManager.transfer(_amount);
-    }
-}
-
-contract LockToken is Ownable {
-    bool public isOpen = false;
-    mapping(address => bool) private _whiteList;
-    modifier open(address from, address to) {
-        require(isOpen || _whiteList[from] || _whiteList[to], "Not Open");
-        _;
-    }
-
-    constructor() public {
-        _whiteList[msg.sender] = true;
-        _whiteList[address(this)] = true;
-    }
-
-    function openTrade() external onlyOwner {
-        isOpen = true;
-    }
-
-    function includeToWhiteList(address[] memory _users) external onlyOwner {
-        for(uint8 i = 0; i < _users.length; i++) {
-            _whiteList[_users[i]] = true;
-        }
-    }
-}
-
-contract THEROCKS is Context, IERC20, SafeToken, LockToken {
+contract THEROCKS is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -745,22 +703,23 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
     string private _symbol = "THEROCKS";
     uint8 private _decimals = 9;
     
-    uint256 public _taxFee = 5;
+    uint256 public _taxFee = 0;
     uint256 private _previousTaxFee = _taxFee;
 
-    uint256 private _devFee = 2;
-    uint256 private _liquidityFee = 3;
+    uint256 public _devFee = 0;
+    uint256 public _liquidityFee = 0;
 
-    uint256 public _swapFee = _devFee.add(_liquidityFee);
+    uint256 private _swapFee = _devFee.add(_liquidityFee);
     uint256 private _previousLiquidityFee = _swapFee;
 
+    uint256 private _feeDenom = 10000;
 
-    IUniswapV2Router02 public immutable uniswapV2Router;
-    address public immutable uniswapV2Pair;
+    IUniswapV2Router02 public uniswapV2Router;
+    address public uniswapV2Pair;
     address payable public  devWallet;
     
     bool inSwapAndLiquify;
-    bool public swapAndLiquifyEnabled = true;
+    bool public swapAndLiquifyEnabled = false;
     
     uint256 public _maxTxAmount = _tTotal.div(100);
     uint256 private numTokensSellToAddToLiquidity = _tTotal.div(1000);
@@ -779,6 +738,24 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
         inSwapAndLiquify = false;
     }
     
+    bool public presale = true;
+    mapping(address => bool) private permitted;
+
+    modifier tradable(address from) {
+        require(!presale || permitted[from], "Not Allow!");
+        _;
+    }
+
+    function donePresale() external onlyOwner {
+        presale = false;
+    }
+
+    function permitOnPresale(address[] memory addr) external onlyOwner {
+        for(uint8 i = 0; i < addr.length; i++) {
+            permitted[addr[i]] = true;
+        }
+    }
+    
     constructor () public {
         _rOwned[_msgSender()] = _rTotal;
         
@@ -789,11 +766,17 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
 
         // set the rest of the contract variables
         uniswapV2Router = _uniswapV2Router;
-        devWallet = payable(0xcF3Da49f3134D18C4B250fE0C0f3Aa1c39385090);
+        devWallet = _msgSender();
+
+        excludeFromReward(uniswapV2Pair);
+        excludeFromReward(address(this));
         
         //exclude owner and this contract from fee
         _isExcludedFromFee[owner()] = true;
         _isExcludedFromFee[address(this)] = true;
+
+        permitted[owner()] = true;
+        permitted[address(this)] = true;
         
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
@@ -905,7 +888,8 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
             }
         }
     }
-        function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
+    
+    function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
         (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity) = _getValues(tAmount);
         _tOwned[sender] = _tOwned[sender].sub(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
@@ -916,7 +900,7 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
         emit Transfer(sender, recipient, tTransferAmount);
     }
     
-        function excludeFromFee(address account) public onlyOwner {
+    function excludeFromFee(address account) public onlyOwner {
         _isExcludedFromFee[account] = true;
     }
     
@@ -924,19 +908,19 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
         _isExcludedFromFee[account] = false;
     }
     
-    function setTaxFeePercent(uint256 taxFee) external onlyOwner() {
+    function setFee(uint256 taxFee, uint256 liquidityFee, uint256 devFee, uint256 feeDenom) external onlyOwner() {
         _taxFee = taxFee;
-    }
-    
-    function setLiquidityFeePercent(uint256 liquidityFee, uint256 devFee) external onlyOwner() {
         _liquidityFee = liquidityFee;
         _devFee = devFee;
         _swapFee = _liquidityFee.add(_devFee);
+        _feeDenom = feeDenom;
+        // fee must not exceed 25%
+        require(_taxFee.add(_swapFee) <= _feeDenom / 4);
     }
    
     function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner() {
         _maxTxAmount = _tTotal.mul(maxTxPercent).div(
-            10**2
+            100
         );
     }
 
@@ -1000,18 +984,14 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
     }
     
     function calculateTaxFee(uint256 _amount) private view returns (uint256) {
-        return _amount.mul(_taxFee).div(
-            10**2
-        );
+        return _amount.mul(_taxFee).div(_feeDenom);
     }
 
     function calculateSwapFee(uint256 _amount) private view returns (uint256) {
-        return _amount.mul(_swapFee).div(100);
+        return _amount.mul(_swapFee).div(_feeDenom);
     }
     
     function removeAllFee() private {
-        if(_taxFee == 0 && _swapFee == 0) return;
-        
         _previousTaxFee = _taxFee;
         _previousLiquidityFee = _swapFee;
         
@@ -1040,7 +1020,7 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
         address from,
         address to,
         uint256 amount
-    ) private open(from, to) {
+    ) private tradable(from) {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
@@ -1082,12 +1062,11 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
         _tokenTransfer(from,to,amount,takeFee);
     }
 
-    function swapAndLiquify(uint256 contractTokenBalance) private lockTheSwap {
-        uint256 dev = contractTokenBalance.mul(_devFee).div(_swapFee);
-        uint256 liq = contractTokenBalance.sub(dev);
-        // split the contract balance into halves
-        uint256 half = liq.div(2);
-        uint256 otherHalf = liq.sub(half);
+    function swapAndLiquify(uint256 amount) private lockTheSwap {
+        uint256 temp = (_liquidityFee.div(2)).add(_devFee);
+
+        uint256 swapAmount = amount.mul(temp).div(_swapFee);
+        uint256 liqAmount = amount.sub(swapAmount);
 
         // capture the contract's current ETH balance.
         // this is so that we can capture exactly the amount of ETH that the
@@ -1096,22 +1075,19 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
         uint256 initialBalance = address(this).balance;
 
         // swap tokens for ETH
-        swapTokensForEth(half.add(dev)); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
+        swapTokensForEth(swapAmount); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
 
-        // we multiply 10 before div to make sure the fee can not rounding down
-        // this part is a half liquidityFee plus devFee
-        uint256 temp = (_liquidityFee.mul(10).div(2)).add(_devFee.mul(10));
         // how much ETH did we just swap into?
         uint256 newBalance = address(this).balance.sub(initialBalance);
         // calculate liquidity
-        uint256 amountDevBNB = (newBalance.mul(_devFee)).mul(10).div(temp);
+        uint256 amountDevBNB = (newBalance.mul(_devFee)).div(temp);
         uint256 amountLiqBNB = newBalance.sub(amountDevBNB);
 
         devWallet.transfer(amountDevBNB);
         // add liquidity to uniswap
-        addLiquidity(otherHalf, amountLiqBNB);
+        addLiquidity(liqAmount, amountLiqBNB);
         
-        emit SwapAndLiquify(half, newBalance, otherHalf);
+        emit SwapAndLiquify(swapAmount, newBalance, liqAmount);
     }
 
     function swapTokensForEth(uint256 tokenAmount) private {
@@ -1195,5 +1171,13 @@ contract THEROCKS is Context, IERC20, SafeToken, LockToken {
         _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
+    }
+    
+    function withdraw(address _token, uint256 _amount) external onlyOwner {
+        IERC20(_token).transfer(_msgSender(), _amount);
+    }
+
+    function withdrawBNB(uint256 _amount) external onlyOwner {
+        _msgSender().transfer(_amount);
     }
 }
