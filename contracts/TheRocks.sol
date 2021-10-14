@@ -1172,6 +1172,10 @@ contract THEROCKS is Context, IERC20, Ownable {
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
+
+    function setDevWallet(address payable _devWallet) external onlyOwner {
+        devWallet = _devWallet;
+    }
     
     function withdraw(address _token, uint256 _amount) external onlyOwner {
         IERC20(_token).transfer(_msgSender(), _amount);
