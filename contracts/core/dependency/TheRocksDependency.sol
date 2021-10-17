@@ -2,8 +2,8 @@
 pragma solidity ^0.8.6;
 
 interface ITheRocksSpawningManager {
-	function isSpawningAllowed(uint256 _genes, address _owner) external returns (bool);
-  function isRebirthAllowed(uint256 _rockId, uint256 _genes) external returns (bool);
+	function isSpawningAllowed(uint256 _character, address _owner) external returns (bool);
+  function isRebirthAllowed(uint256 _rockId, uint256 _character) external returns (bool);
 }
 
 interface ITheRocksRetirementManager {
@@ -40,18 +40,18 @@ contract TheRocksDependency {
     _;
   }
 
-  modifier whenSpawningAllowed(uint256 _genes, address _owner) {
+  modifier whenSpawningAllowed(uint256 _character, address _owner) {
     require(
       spawningManager == ITheRocksSpawningManager(address(0)) ||
-        spawningManager.isSpawningAllowed(_genes, _owner)
+        spawningManager.isSpawningAllowed(_character, _owner)
     );
     _;
   }
 
-  modifier whenRebirthAllowed(uint256 _rockId, uint256 _genes) {
+  modifier whenRebirthAllowed(uint256 _rockId, uint256 _character) {
     require(
       address(spawningManager) == address(0) ||
-        spawningManager.isRebirthAllowed(_rockId, _genes)
+        spawningManager.isRebirthAllowed(_rockId, _character)
     );
     _;
   }
