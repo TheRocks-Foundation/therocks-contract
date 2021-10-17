@@ -29,11 +29,11 @@ contract TheRocksUpdater is Ownable {
         admins[_admin] = _enable;
     }
 
-    function calculateLevel(uint256 _newExp, uint8 currentLevel) public pure returns(uint256) {
+    function calculateLevel(uint256 _newExp, uint8 currentLevel) public pure returns(uint8) {
         for (uint256 i = currentLevel; i <= 256; i++) {
             uint256 v = 1000*i*i + 4000*i;
             if(_newExp < v) {
-                return i-1;
+                return uint8(i-1);
             }
         }
         // maximum level
