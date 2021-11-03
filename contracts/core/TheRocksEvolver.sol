@@ -4,10 +4,7 @@ pragma solidity ^0.8.6;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface ITheRocksCore {
-    function getRock(uint256 _rockId) external view returns (uint256 character, uint256 exp, uint256 bornAt,uint8 level);
-    function evolveRock(uint256 _rockId,uint256 _advanceCharacter,uint256 _newExp,uint8 _newLevel) external;
-}
+import "./interface/ITheRocksCore.sol";
 
 contract TheRocksEvolver is Ownable {
     event EvolveItem(address owner, uint256 _rockId);

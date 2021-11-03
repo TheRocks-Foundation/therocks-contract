@@ -3,16 +3,14 @@ pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-interface ITheRocksCore {
-    function getRock(uint256 _rockId) external view returns (uint256 character, uint256 exp, uint256 bornAt,uint8 level);
-    function evolveRock(uint256 _rockId,uint256 _advanceCharacter,uint256 _newExp,uint8 _newLevel) external;
-}
+import "./interface/ITheRocksCore.sol";
 
 contract TheRocksUpdater is Ownable {
     event UpdateItem(uint256 _rockId, uint8 _newLevel, uint256 _newExp);
     mapping(address => bool) public admins;
     ITheRocksCore theRocksCore;
+    IERC20 theRocksToken;
+    mapping(address => uint256) rewards;
 
 
     modifier onlyAdmin() {
@@ -20,8 +18,9 @@ contract TheRocksUpdater is Ownable {
         _;
     }
 
-    constructor(address core) {
+    constructor(address core, address token) {
         theRocksCore = ITheRocksCore(core);
+        theRocksToken = IERC20(token);
         admins[msg.sender] = true;
     }
 
@@ -47,8 +46,16 @@ contract TheRocksUpdater is Ownable {
     function _evolveItem(uint256 _rockId, uint256 _newExp) internal {
         (uint256 characters,,,uint8 level) = theRocksCore.getRock(_rockId);
         uint8 nextLevel = calculateLevel(_newExp, level);
+        if(nextLevel > level) {
+            _reward(_rockId, nextLevel);
+        }
         theRocksCore.evolveRock(_rockId, characters, _newExp, nextLevel);
         emit UpdateItem(_rockId, nextLevel, _newExp);
+    }
+
+    function _reward(uint256 _rockId, uint8 _newLevel) internal {
+        address rockOwner = theRocksCore.ownerOf(_rockId);
+        rewards[rockOwner] += _newLevel * 5e9; 
     }
 
     function evolveItem(uint256 _rockId, uint256 _newExp) public onlyAdmin {
