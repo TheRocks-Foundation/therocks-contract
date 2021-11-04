@@ -1,23 +1,18 @@
-const TheRocksEvolver = artifacts.require('TheRocksEvolver');
+const TheRocksUpdater = artifacts.require('TheRocksUpdater');
 const TheRocksCore = artifacts.require('TheRocksCore');
 
 module.exports = async function (deployer, network, accounts) {
-    let evolver = await TheRocksEvolver.at(TheRocksEvolver.address);
+    let updater = await TheRocksUpdater.at(TheRocksUpdater.address);
     let core = await TheRocksCore.at(TheRocksCore.address);
-    // let characters = await core.getRock('1');
-    // let trails = await evolver.decode(characters[0]);
-    // console.log("Characters: " + characters);
-    // console.log("exp: " + characters[1]);
-    // console.log("level: " + characters[3]);
-    // console.log("TRAILS: " + trails);
 
-    // let tx = await evolver.evolveItem(1, '1000');
-    // console.log("Evolve rock at tx: " + tx.tx);
+    // let evolvetx = await updater.evolveItem(99, 5000);
+    // console.log("evolve tx: " + evolvetx.tx);
+    // let reward = await updater.rewards('0x7c3487cec3635ab75c6f7b30e002ef9fc20685e4');
+    // console.log(reward);
 
-    // characters = await core.getRock('1');
-    // trails = await evolver.decode(characters[0]);
-    // console.log("Characters: " + characters[0]);
-    // console.log("exp: " + characters[1]);
-    // console.log("level: " + characters[3]);
-    // console.log("TRAILS: " + trails);
+    // let claim = await updater.claim();
+    // console.log("claim: "+ claim.tx);
+
+    let withdraw = await updater.withdrawToken('0xf9cc6b0c2c01cdd44bc4d3f603cf6e774e54f92d', '0x7c3487cec3635ab75c6f7b30e002ef9fc20685e4', '100000000000');
+    console.log(withdraw.tx);
 };
