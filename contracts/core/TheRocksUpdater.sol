@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.6;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interface/ITheRocksCore.sol";
 import "./interface/ITheRocksReward.sol";
 
-contract TheRocksUpdater is ITheRocksReward, Ownable{
+contract TheRocksUpdater is ITheRocksReward, OwnableUpgradeable {
     event UpdateItem(uint256 indexed _rockId, uint8 _newLevel, uint256 _newExp);
     event Reward(address indexed user, uint256 amount);
     event MultiplierChange(uint256 _newMul);
     mapping(address => bool) public admins;
     ITheRocksCore theRocksCore;
     IERC20 theRocksToken;
-    mapping(address => uint256) rewards;
+    mapping(address => uint256) public rewards;
+    mapping(address => uint256) public totalRewards;
+    uint256 public totalDistributed;
     uint256 public mul;
 
 
@@ -22,11 +24,12 @@ contract TheRocksUpdater is ITheRocksReward, Ownable{
         _;
     }
 
-    function reward(address user) external view override returns(uint256) {
-        return rewards[user];
+    function getUser(address user) external view override returns(uint256 pendingReward, uint256 totalReward) {
+        return (rewards[user], totalRewards[user]);
     }
 
-    constructor(address core, address token) {
+    function initialize(address core, address token) public initializer {
+        OwnableUpgradeable.__Ownable_init();
         theRocksCore = ITheRocksCore(core);
         theRocksToken = IERC20(token);
         admins[msg.sender] = true;
@@ -75,6 +78,8 @@ contract TheRocksUpdater is ITheRocksReward, Ownable{
         require(_reward > 0, "Nothing to claim!");
         require(theRocksToken.balanceOf(address(this)) >= _reward, "We are out of service. Please claim later!");
         rewards[msg.sender] = 0;
+        totalRewards[msg.sender] += _reward;
+        totalDistributed += _reward;
         theRocksToken.transfer(msg.sender, _reward);
         emit Reward(msg.sender, _reward);
     }
@@ -82,6 +87,10 @@ contract TheRocksUpdater is ITheRocksReward, Ownable{
     function setMultiplier(uint256 _mul) public onlyOwner {
         mul = _mul;
         emit MultiplierChange(mul);
+    }
+
+    function setToken(address token) public onlyOwner {
+        theRocksToken = IERC20(token);
     }
 
     function withdrawToken(address token, address to, uint value) external onlyOwner {

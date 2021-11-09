@@ -2,7 +2,7 @@
 pragma solidity ^0.8.6;
 
 interface ITheRocksReward {
-    function reward(address user) external view returns(uint256);
+    function getUser(address user) external view returns(uint256 pendingReward, uint256 totalRelease);
     function evolveItem(uint256 _rockId, uint256 _newExp) external;
     function claim() external;
 }
