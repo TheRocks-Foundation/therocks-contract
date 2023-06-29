@@ -1,8 +1,4 @@
-/**
- *Submitted for verification at BscScan.com on 2021-10-14
-*/
-
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.6;
 // SPDX-License-Identifier: Unlicensed
 interface IERC20 {
 
@@ -234,7 +230,7 @@ library SafeMath {
 
 abstract contract Context {
     function _msgSender() internal view virtual returns (address payable) {
-        return msg.sender;
+        return payable(msg.sender);
     }
 
     function _msgData() internal view virtual returns (bytes memory) {
@@ -404,7 +400,7 @@ contract Ownable is Context {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor () internal {
+    constructor () {
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
@@ -455,14 +451,14 @@ contract Ownable is Context {
     function lock(uint256 time) public virtual onlyOwner {
         _previousOwner = _owner;
         _owner = address(0);
-        _lockTime = now + time;
+        _lockTime = block.timestamp + time;
         emit OwnershipTransferred(_owner, address(0));
     }
     
     //Unlocks the contract for owner when _lockTime is exceeds
     function unlock() public virtual {
         require(_previousOwner == msg.sender, "You don't have permission to unlock");
-        require(now > _lockTime , "Contract is locked until 7 days");
+        require(block.timestamp > _lockTime , "Contract is locked until 7 days");
         emit OwnershipTransferred(_owner, _previousOwner);
         _owner = _previousOwner;
     }
@@ -756,7 +752,7 @@ contract THEROCKS is Context, IERC20, Ownable {
         }
     }
     
-    constructor () public {
+    constructor () {
         _rOwned[_msgSender()] = _rTotal;
         
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
